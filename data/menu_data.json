@@ -1,0 +1,51 @@
+{
+  "canapes": [
+    {
+      "id": "1",
+      "name": "Канапе с лососем и сливочным сыром",
+      "weight": 25,
+      "price": 150,
+      "category": "канапе",
+      "nutrition": {"fats": 8.2, "proteins": 6.3, "carbs": 5.1, "calories": 120}
+    },
+    {
+      "id": "2",
+      "name": "Канапе с икрой и авокадо",
+      "weight": 18,
+      "price": 250,
+      "category": "канапе",
+      "nutrition": {"fats": 12.1, "proteins": 8.9, "carbs": 3.2, "calories": 180}
+    },
+    {
+      "id": "3",
+      "name": "Брускетта с томатами и базиликом",
+      "weight": 35,
+      "price": 120,
+      "category": "канапе",
+      "nutrition": {"fats": 4.5, "proteins": 3.8, "carbs": 12.1, "calories": 95}
+    }
+  ],
+  "bruschettas": [
+    {
+      "id": "4",
+      "name": "Брускетта с бабаганушем",
+      "weight": 40,
+      "price": 105,
+      "category": "брускетты",
+      "nutrition": {"fats": 2.5, "proteins": 3.6, "carbs": 17.6, "calories": 107}
+    }
+  ],
+  "sets": [
+    {
+      "id": "set1",
+      "name": "Сет Деловой на 20 персон",
+      "weight": 5000,
+      "price": 25000,
+      "category": "наборы",
+      "is_set": true,
+      "guests_range": "20-25",
+      "includes": ["Канапе ассорти", "Брускетты", "Десерты"],
+      "nutrition": {"fats": 10.5, "proteins": 7.8, "carbs": 12.3, "calories": 165}
+    }
+  ]
+}
