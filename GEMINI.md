@@ -1,0 +1,2 @@
+auth_type: api_key
+api_key: AIzaSyAkwkZtjEEEt2kT1mj_v9guyzvhD03X7IM
