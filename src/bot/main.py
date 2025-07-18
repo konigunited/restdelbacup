@@ -15,8 +15,8 @@ async def main(menu_json_str: str):
     bot = Bot(token=Config.TELEGRAM_BOT_TOKEN)
     storage = MemoryStorage()
     
-    # ПРАВИЛЬНЫЙ СПОСОБ: Передаем меню как именованный аргумент в Dispatcher.
-    # Теперь он будет доступен во всех хендлерах.
+    # Создаем Dispatcher и передаем ему данные, которые будут доступны во всех хендлерах
+    # через аргументы функции. В нашем случае, мы передаем JSON-строку с меню.
     dp = Dispatcher(storage=storage, menu_json=menu_json_str)
 
     dp.include_router(router)

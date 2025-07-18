@@ -104,7 +104,7 @@ class GeminiExpert:
 
     @staticmethod
     def format_proposal_for_telegram(proposal_json: Dict[str, Any]) -> str:
-        if "error" in proposal_json or not proposal_json:
+        if not proposal_json or "error" in proposal_json:
             return "К сожалению, не удалось составить предложение. Попробуйте еще раз."
 
         text = proposal_json.get("proposal_text", "Ваше предложение по меню готово:")
@@ -116,19 +116,20 @@ class GeminiExpert:
                 text += f"- {item.get('name')} ({item.get('weight', 'N/A')}, {item.get('price_per_item', 0)} руб.) x {item.get('quantity', 0)} шт.\n"
             text += "\n"
 
-        summary = proposal_json.get("summary", {})
+        # Более безопасное извлечение данных с значениями по умолчанию
+        summary = proposal_json.get("summary") or {}
         text += f"*Итого по меню:*\n"
         text += f"- На одного гостя: ~{summary.get('price_per_guest', 0)} руб.\n"
         text += f"- Общая граммовка на гостя: {summary.get('weight_per_guest_grams', 0)}г\n"
         text += f"- Общая стоимость меню: {summary.get('total_menu_price', 0)} руб.\n\n"
 
-        service = proposal_json.get("service_calculation", {})
-        if service.get("total_service_cost", 0) > 0:
+        service = proposal_json.get("service_calculation") or {}
+        if service and service.get("total_service_cost", 0) > 0:
             text += "*Расчет обслуживания:*\n"
-            text += f"{service.get('service_details', '')}\n"
+            text += f"{service.get('service_details', 'Детали не указаны.')}\n"
             text += f"Итого за обслуживание: {service.get('total_service_cost', 0)} руб.\n\n"
 
-        warnings = proposal_json.get("warnings", [])
+        warnings = proposal_json.get("warnings") or []
         if warnings:
             text += "*Важные моменты:*\n"
             for warning in warnings:
