@@ -27,7 +27,7 @@ def get_main_menu_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📝 Создать смету", callback_data="start_new_quote")],
         [InlineKeyboardButton(text="ℹ️ Помощь", callback_data="show_help")],
-        [InlineKeyboardButton(text="📖 Посмотреть меню", url="https://restdelivery.ru/menu/")]
+        [InlineKeyboardButton(text="📖 Посмотреть меню", callback_data="show_text_menu")]
     ])
 
 def get_proposal_keyboard():
@@ -77,7 +77,7 @@ async def any_message_handler(message: Message, state: FSMContext):
     await show_main_menu(message, state)
 
 @router.callback_query(F.data == "show_help")
-async def show_help_callback(callback: CallbackQuery, state: FSMContext):
+async def show_help_callback(callback: CallbackQuery):
     """Показывает справочную информацию."""
     help_text = (
         "Я помогу вам составить смету для мероприятия.\n\n"
@@ -88,6 +88,32 @@ async def show_help_callback(callback: CallbackQuery, state: FSMContext):
         "Чтобы вернуться в главное меню, нажмите /start."
     )
     await answer_with_fallback(callback, help_text, reply_markup=get_main_menu_keyboard())
+
+@router.callback_query(F.data == "show_text_menu")
+async def show_text_menu_callback(callback: CallbackQuery, menu_json: str):
+    """Форматирует и выводит меню текстом в чат."""
+    try:
+        menu_data = json.loads(menu_json)
+        menu_text = "📖 **Наше меню:**\n\n"
+        
+        for category_data in menu_data:
+            category_name = category_data.get('category', 'Без категории')
+            menu_text += f"*{category_name}*\n"
+            for item in category_data.get('items', []):
+                price = item.get('price', 'N/A')
+                menu_text += f"- {item.get('name', 'N/A')} ({price} руб.)\n"
+            menu_text += "\n"
+
+        # Проверка на лимит сообщения
+        if len(menu_text) > 4096:
+            menu_text = menu_text[:4000] + "\n\n... (меню слишком длинное для отображения полностью)"
+
+        await answer_with_fallback(callback, menu_text, reply_markup=get_main_menu_keyboard())
+
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.error(f"Failed to parse or format menu JSON: {e}")
+        await answer_with_fallback(callback, "❌ Не удалось загрузить меню. Пожалуйста, попробуйте позже.", reply_markup=get_main_menu_keyboard())
+
 
 # --- Основной флоу создания сметы ---
 @router.callback_query(F.data == "start_new_quote")
@@ -108,25 +134,23 @@ async def start_new_quote(callback: CallbackQuery, state: FSMContext):
 
 @router.message(QuoteStates.waiting_for_request)
 async def process_request_and_generate_proposal(message: Message, state: FSMContext, menu_json: str):
-    """Принимает описание от пользователя, анализирует и генерирует предложение."""
+    """Принимает описание от пользоват��ля, анализирует и генерирует предложение."""
     processing_msg = await message.answer("🤖 Анализирую ваш запрос и подбираю лучшее предложение. Это может занять до минуты...")
     try:
         gemini_expert = GeminiExpert(Config.GEMINI_API_KEY)
         
-        # Шаг 1: Анализ запроса для извлечения структурированных данных
         event_details = await gemini_expert.analyze_request(message.text)
         if not event_details or event_details.get("error"):
-            await processing_msg.edit_text("❌ Не удалось распознать детали вашего мероприятия. Пожалуйста, попробуйте описать его более подробно, указав все ключевые параметры.", reply_markup=get_main_menu_keyboard())
+            await processing_msg.edit_text("❌ Не удалось распознать детали вашего мероприятия. Пожалуйста, попробуйте описать его более подробно.", reply_markup=get_main_menu_keyboard())
             await state.clear()
             return
             
         await state.update_data(event_details=event_details)
 
-        # Шаг 2: Генерация предложения на основе извлеченных данных
         proposal_json = await gemini_expert.generate_proposal(event_details, menu_json)
         if not proposal_json or proposal_json.get("error"):
             error_text = proposal_json.get("error", "ответ был пустым") if proposal_json else "ответ был пустым"
-            await processing_msg.edit_text(f"❌ Не удалось составить предложение ({error_text}). Попробуйте еще раз, начав с /start.")
+            await processing_msg.edit_text(f"❌ Не удалось состав��ть предложение ({error_text}). Попробуйте еще раз, начав с /start.")
             await state.clear()
             return
 
@@ -166,7 +190,6 @@ async def process_proposal_edits(message: Message, state: FSMContext, menu_json:
 
         if not new_proposal_json or new_proposal_json.get("error"):
             await processing_msg.edit_text("❌ Не удалось обновить предложение. Попробуйте сформулировать правки иначе.")
-            # Возвращаем пользователя к подтверждению предыдущего варианта
             await state.set_state(QuoteStates.confirming_proposal)
             return
 
