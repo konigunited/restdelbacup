@@ -75,6 +75,13 @@ async def generate_proposal_flow(message: Message, state: FSMContext, menu_json:
         gemini_expert = GeminiExpert(Config.GEMINI_API_KEY)
         proposal_json = await gemini_expert.generate_proposal(event_details, menu_json)
 
+        # Проверяем, что ответ от Gemini не пустой
+        if not proposal_json:
+            logger.error("Received None from generate_proposal. Aborting flow.")
+            await processing_msg.edit_text("❌ Не удалось получить ответ от AI. Пожалуйста, попробуйте еще раз.")
+            await state.clear()
+            return
+
         if proposal_json.get("error"):
             await processing_msg.edit_text("❌ Не удалось составить предложение. Возможно, ваш запрос слишком сложный. Попробуйте еще раз.")
             await state.clear()

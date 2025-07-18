@@ -1,0 +1,61 @@
+{
+  "proposal_text": "Здравствуйте! Подготовил для вас банкетное предложение, сбалансированное по составу и бюджету. Включил разнообразные горячие блюда, а также наборы холодных закусок. Все блюда будут доставлены в удобных боксах. Уверен, вашим гостям понравится!",
+  "menu_items": [
+    {
+      "category": "Горячие блюда",
+      "items": [
+        {
+          "name": "Медальоны из говядины с сезонными грибами",
+          "quantity": 10,
+          "price_per_item": 1450,
+          "weight": "250г"
+        },
+        {
+          "name": "Радужная форель с пюре васаби, биск, тартар из огурцов",
+          "quantity": 10,
+          "price_per_item": 1700,
+          "weight": "260г"
+        }
+      ]
+    },
+    {
+      "category": "Холодные закуски",
+      "items": [
+        {
+          "name": "Сет мясных деликатесов VIP",
+          "quantity": 2,
+          "price_per_item": 4490,
+          "weight": "350г"
+        },
+        {
+          "name": "Сет итальянских сыров",
+          "quantity": 1,
+          "price_per_item": 4790,
+          "weight": "500г"
+        },
+        {
+          "name": "Ассорти северных рыб",
+          "quantity": 1,
+          "price_per_item": 4190,
+          "weight": "500г"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_menu_price": 49460,
+    "price_per_guest": 2473,
+    "weight_per_guest_grams": 340
+  },
+  "service_calculation": {
+    "waiters_count": 0,
+    "waiters_cost": 0,
+    "cooks_count": 0,
+    "cooks_cost": 0,
+    "manager_needed": false,
+    "manager_cost": 0,
+    "total_service_cost": 0,
+    "service_details": "Обслуживание не требуется согласно запросу."
+  },
+  "warnings": []
+}

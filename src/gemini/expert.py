@@ -19,17 +19,17 @@ class GeminiExpert:
         generation_config = GenerationConfig(response_mime_type="application/json")
 
         self.analysis_model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.5-pro",
             system_instruction=SYSTEM_PROMPT,
             generation_config=generation_config,
             safety_settings=safety_settings
         )
         self.proposal_model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.5-pro",
             generation_config=generation_config,
             safety_settings=safety_settings
         )
-        logger.info("Using Gemini model: gemini-1.5-pro with custom safety settings.")
+        logger.info("Using Gemini model: gemini-2.5-pro with custom safety settings.")
 
     async def analyze_request(self, text: str) -> Dict[str, Any]:
         try:
@@ -60,12 +60,20 @@ class GeminiExpert:
         response = None  # Инициализируем переменную заранее
         try:
             logger.info("Generating full proposal...")
+            
+            # Экранируем фигурные скобки в JSON-данных, чтобы избежать конфликтов с .format()
+            safe_event_details = json.dumps(event_details, ensure_ascii=False).replace("{", "{{").replace("}", "}}")
+            safe_menu_json = menu_json.replace("{", "{{").replace("}", "}}")
+            safe_previous_menu = previous_menu.replace("{", "{{").replace("}", "}}")
+
             prompt = MENU_GENERATION_PROMPT.format(
-                event_details=json.dumps(event_details, ensure_ascii=False),
-                menu_json=menu_json,
-                previous_menu=previous_menu,
+                event_details=safe_event_details,
+                menu_json=safe_menu_json,
+                previous_menu=safe_previous_menu,
                 user_edits=user_edits
             )
+            
+            logger.info(f"Generated prompt size: {len(prompt)} characters.")
             response = await self.proposal_model.generate_content_async(prompt)
 
             # --- Улучшенная диагностика ---
