@@ -95,7 +95,7 @@ class GeminiExpert:
 
             return json.loads(cleaned_text)
         except Exception as e:
-            logger.error(f"Error in generate_proposal: {str(e)}")
+            logger.error(f"Critical error in generate_proposal: {str(e)}", exc_info=True) # Добавляем exc_info=True
             if response:
                 logger.error(f"Failed to parse JSON from generate_proposal: {response.text}")
             else:
@@ -107,16 +107,28 @@ class GeminiExpert:
         if not proposal_json or "error" in proposal_json:
             return "К сожалению, не удалось составить предложение. Попробуйте еще раз."
 
-        text = proposal_json.get("proposal_text", "Ваше предложение по меню готово:")
+        def escape_markdown(text: str) -> str:
+            """Экранирует специальные символы Markdown."""
+            if not isinstance(text, str):
+                return ""
+            # Основные символы, которые могут вызвать проблемы в нашем форматировании
+            escape_chars = r'[_*`'
+            return ''.join(f'\{char}' if char in escape_chars else char for char in text)
+
+        text = escape_markdown(proposal_json.get("proposal_text", "Ваше предложение по меню готово:"))
         text += "\n\n"
 
         for category in proposal_json.get("menu_items", []):
-            text += f"*{category.get('category', 'Категория')}*\n"
+            category_name = escape_markdown(category.get('category', 'Категория'))
+            text += f"*{category_name}*\n"
             for item in category.get("items", []):
-                text += f"- {item.get('name')} ({item.get('weight', 'N/A')}, {item.get('price_per_item', 0)} руб.) x {item.get('quantity', 0)} шт.\n"
+                name = escape_markdown(item.get('name'))
+                weight = escape_markdown(str(item.get('weight', 'N/A')))
+                price = item.get('price_per_item', 0)
+                quantity = item.get('quantity', 0)
+                text += f"- {name} ({weight}, {price} руб.) x {quantity} шт.\n"
             text += "\n"
 
-        # Более безопасное извлечение данных с значениями по умолчанию
         summary = proposal_json.get("summary") or {}
         text += f"*Итого по меню:*\n"
         text += f"- На одного гостя: ~{summary.get('price_per_guest', 0)} руб.\n"
@@ -125,14 +137,15 @@ class GeminiExpert:
 
         service = proposal_json.get("service_calculation") or {}
         if service and service.get("total_service_cost", 0) > 0:
+            service_details = escape_markdown(service.get('service_details', 'Детали не указаны.'))
             text += "*Расчет обслуживания:*\n"
-            text += f"{service.get('service_details', 'Детали не указаны.')}\n"
+            text += f"{service_details}\n"
             text += f"Итого за обслуживание: {service.get('total_service_cost', 0)} руб.\n\n"
 
         warnings = proposal_json.get("warnings") or []
         if warnings:
             text += "*Важные моменты:*\n"
             for warning in warnings:
-                text += f"- {warning}\n"
+                text += f"- {escape_markdown(warning)}\n"
         
         return text
